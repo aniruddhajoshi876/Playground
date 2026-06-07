@@ -1,0 +1,8 @@
+../Drivers/CMSIS/Include/core_cm4.h:1679:22:void __NVIC_EnableIRQ(IRQn_Type)	2
+../Core/Inc/BoardManager.h:29:14:float raw_to_temp(uint32_t)	1
+../Core/Src/BoardManager.cpp:17:1:BoardManager::BoardManager()	1
+../Core/Src/BoardManager.cpp:21:6:void BoardManager::init()	1
+../Core/Src/BoardManager.cpp:38:6:void BoardManager::timer_manager(uint32_t)	1
+../Core/Src/BoardManager.cpp:44:6:void BoardManager::execute()	1
+../Core/Src/BoardManager.cpp:51:6:void BoardManager::state_manager()	6
+../Core/Src/BoardManager.cpp:78:6:void BoardManager::read_adc()	1
