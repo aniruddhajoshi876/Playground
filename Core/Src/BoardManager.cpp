@@ -6,7 +6,7 @@
  */
 
 #include "BoardManager.h"
-#include "cmsis_os.h"
+
 #include "main.h"
 
 

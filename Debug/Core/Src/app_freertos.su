@@ -1,7 +1,0 @@
-../Core/Src/app_freertos.c:80:13:vApplicationStackOverflowHook	24	static,ignoring_inline_asm
-../Core/Src/app_freertos.c:95:13:vApplicationMallocFailedHook	4	static,ignoring_inline_asm
-../Core/Src/app_freertos.c:116:6:MX_FREERTOS_Init	88	static
-../Core/Src/app_freertos.c:172:6:low_priority	16	static
-../Core/Src/app_freertos.c:201:6:adc_task	56	static
-../Core/Src/app_freertos.c:254:6:slow	16	static
-../Core/Src/app_freertos.c:272:6:HAL_ADC_ConvCpltCallback	16	static

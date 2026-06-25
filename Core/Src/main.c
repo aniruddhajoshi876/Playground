@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "spi.h"
@@ -32,9 +31,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
-#include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,18 +62,13 @@ volatile uint16_t adc_buf[3];
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static void DWT_init(){
-	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; //turn on access to debug/trace counters
-	DWT->CYCCNT = 0;//set counter to 0
-	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; //start counter
-}
+
 
 
 
@@ -121,25 +112,14 @@ int main(void)
   bm = bm_create();
   bm_init(bm);
 
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-
-  printf("adc initialized\r\n");
-  DWT_init();
-
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  HAL_Delay(500);
 
   }
 
