@@ -108,7 +108,7 @@ int main(void)
 
 
   __enable_irq();
-//  HAL_UART_Receive_IT(&huart1, &reset_flag, 1); //wait for 'U', cpu goes back to work
+  HAL_UART_Receive_IT(&huart1, &reset_flag, 1); //wait for 'U', cpu goes back to work
 
 
   /* USER CODE END 2 */
@@ -118,14 +118,14 @@ int main(void)
   while (1)
   {
 	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(500);
+	  HAL_Delay(100);
 
-//	  if (reset){
-//		  boot_flag = 0xDEADBEEF;
-//		  NVIC_SystemReset();
-//
-//
-//	  }
+	  if (reset){
+		  boot_flag = 0xDEADBEEF;
+		  NVIC_SystemReset();
+
+
+	  }
 
   }
 
