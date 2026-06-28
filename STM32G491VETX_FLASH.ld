@@ -44,8 +44,10 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 112K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 512K
+  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 112k - 4
+  FLASH (rx) : ORIGIN = 0x8008000, LENGTH = 480K
+  NOINIT (xrw) : ORIGIN = 0x2001BFFC, LENGTH = 4
+
 }
 
 /* Sections */
@@ -164,6 +166,14 @@ SECTIONS
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
+  
+.noinit (NOLOAD) :
+{
+    . = ALIGN(4);
+    *(.noinit)
+    *(.noinit*)
+    . = ALIGN(4);
+} > NOINIT
 
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack :

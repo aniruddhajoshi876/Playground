@@ -9,7 +9,6 @@
 #define INC_BOARDMANAGER_H_
 
 #include "IOPinwrapper.hpp"
-#include "adc.h"
 #include <cstdio>
 
 #define TS_CAL1  (*((volatile uint16_t*)0x1FFF75A8U))

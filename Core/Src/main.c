@@ -18,8 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
-#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -52,11 +50,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-void* bm;
-volatile int ticks=0;
-volatile uint32_t adc_raw;
-volatile uint32_t adc_ready;
-volatile uint16_t adc_buf[3];
+  uint8_t reset_flag; //wait to be set to 'U'
+  uint8_t volatile reset; //set by callback to reset
+  uint32_t boot_flag __attribute__((section(".noinit"))); //stored into no-init ram
 
 /* USER CODE END PV */
 
@@ -103,14 +99,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init();
   MX_SPI1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  bm = bm_create();
-  bm_init(bm);
+
+
+
+  __enable_irq();
+//  HAL_UART_Receive_IT(&huart1, &reset_flag, 1); //wait for 'U', cpu goes back to work
+
 
   /* USER CODE END 2 */
 
@@ -120,6 +119,13 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	  HAL_Delay(500);
+
+//	  if (reset){
+//		  boot_flag = 0xDEADBEEF;
+//		  NVIC_SystemReset();
+//
+//
+//	  }
 
   }
 
