@@ -1421,23 +1421,22 @@ int main(void)
  8009012:	2120      	movs	r1, #32
  8009014:	f04f 4090 	mov.w	r0, #1207959552	@ 0x48000000
  8009018:	f001 f846 	bl	800a0a8 <HAL_GPIO_TogglePin>
-	  HAL_Delay(100);
- 800901c:	2064      	movs	r0, #100	@ 0x64
- 800901e:	f000 fcd7 	bl	80099d0 <HAL_Delay>
+	  HAL_Delay(1000);
+ 800901c:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8009020:	f000 fcd6 	bl	80099d0 <HAL_Delay>
 
 	  if (reset){
- 8009022:	4b07      	ldr	r3, [pc, #28]	@ (8009040 <main+0x5c>)
- 8009024:	781b      	ldrb	r3, [r3, #0]
- 8009026:	b2db      	uxtb	r3, r3
- 8009028:	2b00      	cmp	r3, #0
- 800902a:	d0f2      	beq.n	8009012 <main+0x2e>
+ 8009024:	4b06      	ldr	r3, [pc, #24]	@ (8009040 <main+0x5c>)
+ 8009026:	781b      	ldrb	r3, [r3, #0]
+ 8009028:	b2db      	uxtb	r3, r3
+ 800902a:	2b00      	cmp	r3, #0
+ 800902c:	d0f1      	beq.n	8009012 <main+0x2e>
 		  boot_flag = 0xDEADBEEF;
- 800902c:	4b05      	ldr	r3, [pc, #20]	@ (8009044 <main+0x60>)
- 800902e:	4a06      	ldr	r2, [pc, #24]	@ (8009048 <main+0x64>)
- 8009030:	601a      	str	r2, [r3, #0]
+ 800902e:	4b05      	ldr	r3, [pc, #20]	@ (8009044 <main+0x60>)
+ 8009030:	4a05      	ldr	r2, [pc, #20]	@ (8009048 <main+0x64>)
+ 8009032:	601a      	str	r2, [r3, #0]
 		  NVIC_SystemReset();
- 8009032:	f7ff ffc1 	bl	8008fb8 <__NVIC_SystemReset>
- 8009036:	bf00      	nop
+ 8009034:	f7ff ffc0 	bl	8008fb8 <__NVIC_SystemReset>
  8009038:	200001f0 	.word	0x200001f0
  800903c:	20000340 	.word	0x20000340
  8009040:	200001f1 	.word	0x200001f1
