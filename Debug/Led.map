@@ -972,6 +972,43 @@ Discarded input sections
  .debug_macro   0x00000000      0x185 ./Core/Src/main.o
  .debug_macro   0x00000000       0x16 ./Core/Src/main.o
  .debug_macro   0x00000000       0x16 ./Core/Src/main.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .group         0x00000000        0xc ./Core/Src/ring_buffer.o
+ .text          0x00000000        0x0 ./Core/Src/ring_buffer.o
+ .data          0x00000000        0x0 ./Core/Src/ring_buffer.o
+ .bss           0x00000000        0x0 ./Core/Src/ring_buffer.o
+ .bss.buffer    0x00000000        0xa ./Core/Src/ring_buffer.o
+ .bss.rb        0x00000000        0x8 ./Core/Src/ring_buffer.o
+ .text.create   0x00000000       0x30 ./Core/Src/ring_buffer.o
+ .text.push     0x00000000       0x90 ./Core/Src/ring_buffer.o
+ .text.pop      0x00000000       0x8c ./Core/Src/ring_buffer.o
+ .debug_info    0x00000000      0x175 ./Core/Src/ring_buffer.o
+ .debug_abbrev  0x00000000      0x10e ./Core/Src/ring_buffer.o
+ .debug_aranges
+                0x00000000       0x30 ./Core/Src/ring_buffer.o
+ .debug_rnglists
+                0x00000000       0x21 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x7c ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000      0xad8 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x22 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x22 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x8e ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x51 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000      0x103 ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000       0x6a ./Core/Src/ring_buffer.o
+ .debug_macro   0x00000000      0x1df ./Core/Src/ring_buffer.o
+ .debug_line    0x00000000      0x530 ./Core/Src/ring_buffer.o
+ .debug_str     0x00000000     0x3e58 ./Core/Src/ring_buffer.o
+ .comment       0x00000000       0x44 ./Core/Src/ring_buffer.o
+ .debug_frame   0x00000000       0x80 ./Core/Src/ring_buffer.o
+ .ARM.attributes
+                0x00000000       0x34 ./Core/Src/ring_buffer.o
  .group         0x00000000        0xc ./Core/Src/spi.o
  .group         0x00000000        0xc ./Core/Src/spi.o
  .group         0x00000000        0xc ./Core/Src/spi.o
@@ -4717,6 +4754,7 @@ LOAD ./Core/Src/IOPinwrapper.o
 LOAD ./Core/Src/SPIDriver.o
 LOAD ./Core/Src/gpio.o
 LOAD ./Core/Src/main.o
+LOAD ./Core/Src/ring_buffer.o
 LOAD ./Core/Src/spi.o
 LOAD ./Core/Src/stm32g4xx_hal_msp.o
 LOAD ./Core/Src/stm32g4xx_hal_timebase_tim.o
