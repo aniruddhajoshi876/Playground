@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "spi.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -52,7 +52,7 @@
 
 /* USER CODE BEGIN PV */
   extern ring_buffer rb;
-  extern uint8_t buf[40];
+  extern uint8_t buf[200];
 
 /* USER CODE END PV */
 
@@ -99,15 +99,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_SPI1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-  rb_create(&rb, buf, 40);
+  rb_create(&rb, buf, 200);
 
-
+  /* enable the DWT cycle counter (16 cyc = 1 us at 16 MHz) */
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
   /* USER CODE END 2 */
 
@@ -115,8 +117,39 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    char b[80];
+    int  n;
 
+    /* ---------- A) DMA printf: 3 expensive prints, async ----------
+     * printf() formats + kicks off DMA, then returns. The UART transfer
+     * happens in the background, so this measures CPU (formatting) cost only.
+     * All 3 sentences (~120 bytes) fit in the 200-byte ring buffer.        */
+    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }   /* start idle */
+    uint32_t a0 = DWT->CYCCNT;
+    printf("Euler's number e is roughly %.5f\r\n", 2.7182818);
+    printf("Avogadro's constant is %.3e per mol\r\n", 6.022e23);
+    printf("The square root of two is about %.6f\r\n", 1.4142136);
+    uint32_t dma_cyc = DWT->CYCCNT - a0;
 
+    /* let the DMA fully drain before touching the UART with blocking calls */
+    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }
+    HAL_Delay(10);
+
+    /* ---------- B) blocking printf: same 3 prints, sync ----------
+     * snprintf formats, then HAL_UART_Transmit BLOCKS until every byte is
+     * on the wire. So this measures formatting + the ~87 us/byte UART wait. */
+    uint32_t b0 = DWT->CYCCNT;
+    n = snprintf(b, sizeof b, "Euler's number e is roughly %.5f\r\n", 2.7182818);  HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
+    n = snprintf(b, sizeof b, "Avogadro's constant is %.3e per mol\r\n", 6.022e23); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
+    n = snprintf(b, sizeof b, "The square root of two is about %.6f\r\n", 1.4142136); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
+    uint32_t block_cyc = DWT->CYCCNT - b0;
+
+    /* ---------- compare (short lines so they fit the ring buffer) ---------- */
+    HAL_Delay(20);
+    printf("DMA:   %lu cyc\r\n", (unsigned long)dma_cyc);      HAL_Delay(20);
+    printf("BLOCK: %lu cyc\r\n", (unsigned long)block_cyc);    HAL_Delay(20);
+    printf("ratio: %lux\r\n", (unsigned long)(block_cyc / (dma_cyc ? dma_cyc : 1)));
+    HAL_Delay(1000);
   }
 
 

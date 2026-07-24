@@ -25,4 +25,41 @@ bool rb_push(ring_buffer* current, uint8_t value);
 
 uint8_t rb_pop(ring_buffer* current);
 
+//syscalls.c
+//ring_buffer rb;
+//uint8_t buf[200];
+//
+//int _write(int file, char *ptr, int len)
+//{
+//	for (int i =0; i < len; i++){
+//		if (!rb_push(&rb, ptr[i])){
+//			return i; //buffer full
+//		}
+//	}
+//	if (rb.head == rb.tail){return 0;} //buffer is empty
+//
+//	HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail));
+//
+//  return len;
+//}
+
+//usart.c
+//extern ring_buffer rb;
+//void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart){
+//	if (huart->Instance ==USART1){
+//		rb.tail = (rb.tail + huart->TxXferSize) % rb.size;
+//
+//		if (rb.head != rb.tail){
+//			HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail));
+//		}
+//
+//	}
+//}
+
+
+//main.c
+//extern ring_buffer rb;
+//extern uint8_t buf[200];
+//...
+//rb_create(&rb, buf, 200);
 #endif /* INC_RING_BUFFER_H_ */

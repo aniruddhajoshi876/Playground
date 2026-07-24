@@ -170,7 +170,7 @@ int _execve(char *name, char **argv, char **env)
 
 
 ring_buffer rb;
-uint8_t buf[40];
+uint8_t buf[200];
 
 int _write(int file, char *ptr, int len)
 {
