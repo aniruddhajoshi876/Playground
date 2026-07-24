@@ -13,17 +13,17 @@
 
 typedef struct{
 	uint8_t* pxbuffer;
-	uint8_t head;
-	uint8_t tail;
-	uint8_t count;
-	uint8_t size;
+	uint16_t head;
+	uint16_t tail;
+	uint16_t size;
+	uint16_t count;
 }ring_buffer;
 
 
-void create(ring_buffer* current, uint8_t* buffer, uint8_t size_n);
+void rb_create(ring_buffer* current, uint8_t* buffer, uint8_t size_n);
 
-bool push(ring_buffer* current, uint8_t value);
+bool rb_push(ring_buffer* current, uint8_t value);
 
-uint8_t pop(ring_buffer* current);
+uint8_t rb_pop(ring_buffer* current);
 
 #endif /* INC_RING_BUFFER_H_ */

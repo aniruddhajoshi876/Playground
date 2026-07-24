@@ -31,6 +31,8 @@
 #include <sys/times.h>
 #include "usart.h"
 #include "stm32g4xx_hal.h"
+#include "ring_buffer.h"
+
 /* Variables */
 
 extern int __io_getchar(void) __attribute__((weak));
@@ -166,10 +168,24 @@ int _execve(char *name, char **argv, char **env)
   return -1;
 }
 
+
+ring_buffer rb;
+uint8_t buf[40];
+
 int _write(int file, char *ptr, int len)
 {
-  if (HAL_UART_Transmit(&huart1, (uint8_t*) ptr, len, 100) == HAL_OK){
-	  return len;
-  	  }
-  return 0;
+	for (int i =0; i < len; i++){
+		if (!rb_push(&rb, ptr[i])){
+			return i; //buffer full
+		}
+	}
+	if (rb.head == rb.tail){return 0;} //buffer is empty
+
+	rb.count = (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail);
+
+	HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], rb.count);
+
+  return len;
 }
+
+

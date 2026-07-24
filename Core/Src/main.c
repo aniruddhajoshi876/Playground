@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include "ring_buffer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,9 +51,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-  uint8_t reset_flag; //wait to be set to 'U'
-  uint8_t volatile reset; //set by callback to reset
-  uint32_t boot_flag __attribute__((section(".noinit"))); //stored into no-init ram
+  extern ring_buffer rb;
+  extern uint8_t buf[40];
 
 /* USER CODE END PV */
 
@@ -105,10 +105,8 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
+  rb_create(&rb, buf, 40);
 
-
-  __enable_irq();
-  HAL_UART_Receive_IT(&huart1, &reset_flag, 1); //wait for 'U', cpu goes back to work
 
 
   /* USER CODE END 2 */
@@ -117,15 +115,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(1000);
 
-	  if (reset){
-		  boot_flag = 0xDEADBEEF;
-		  NVIC_SystemReset();
-
-
-	  }
 
   }
 
