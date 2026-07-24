@@ -155,11 +155,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart){
 extern ring_buffer rb;
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart){
 	if (huart->Instance ==USART1){
-		rb.tail = (rb.tail + rb.count) % rb.size;
-		rb.count = (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail);
+		rb.tail = (rb.tail + huart->TxXferSize) % rb.size;
 
 		if (rb.head != rb.tail){
-			HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], rb.count);
+			HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail));
 		}
 
 	}

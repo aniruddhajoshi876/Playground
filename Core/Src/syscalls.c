@@ -181,9 +181,7 @@ int _write(int file, char *ptr, int len)
 	}
 	if (rb.head == rb.tail){return 0;} //buffer is empty
 
-	rb.count = (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail);
-
-	HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], rb.count);
+	HAL_UART_Transmit_DMA(&huart1, &rb.pxbuffer[rb.tail], (rb.head > rb.tail) ? (rb.head - rb.tail) : (rb.size - rb.tail));
 
   return len;
 }

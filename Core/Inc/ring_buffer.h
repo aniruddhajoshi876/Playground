@@ -13,10 +13,9 @@
 
 typedef struct{
 	uint8_t* pxbuffer;
-	uint16_t head;
-	uint16_t tail;
+	volatile uint16_t head;
+	volatile uint16_t tail;
 	uint16_t size;
-	uint16_t count;
 }ring_buffer;
 
 
