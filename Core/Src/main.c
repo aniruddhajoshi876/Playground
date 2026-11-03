@@ -65,6 +65,11 @@
   static volatile eTaskState exStateBefore;  /* waiter state before vTaskResume() */
   static volatile eTaskState exStateAfter;   /* waiter state after vTaskResume() */
 
+  /* Exercise 1 user events (Tracealyzer channel "ex1").
+   * eTaskState values: 0 Running, 1 Ready, 2 Blocked, 3 Suspended, 4 Deleted */
+  static TraceStringHandle_t exChannel;
+  static TraceStringHandle_t exFmtHandle, exFmtWake, exFmtBefore, exFmtAfter, exFmtDone;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -90,6 +95,7 @@ static void exWaiterTask(void *arg)
   {
     exLastValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     exWakeCount++;
+    xTracePrintF2(exChannel, exFmtWake, exWakeCount, exLastValue);
     printf("waiter: wake #%lu value=%lu\r\n",
            (unsigned long)exWakeCount, (unsigned long)exLastValue);
   }
@@ -99,18 +105,23 @@ static void exControllerTask(void *arg)
 {
   (void)arg;
 
+  xTracePrintF1(exChannel, exFmtHandle, (TraceUnsignedBaseType_t)exWaiter);
+
   /* give the waiter time to block */
   vTaskDelay(pdMS_TO_TICKS(500));
   exStateBefore = eTaskGetState(exWaiter);
+  xTracePrintF1(exChannel, exFmtBefore, exStateBefore);
   printf("ctrl: vTaskResume\r\n");
   vTaskResume(exWaiter);
 
   vTaskDelay(pdMS_TO_TICKS(500));
   exStateAfter = eTaskGetState(exWaiter);
+  xTracePrintF1(exChannel, exFmtAfter, exStateAfter);
   printf("ctrl: xTaskNotifyGive\r\n");
   xTaskNotifyGive(exWaiter);
 
   vTaskDelay(pdMS_TO_TICKS(500));
+  xTracePrintF2(exChannel, exFmtDone, exWakeCount, exLastValue);
   printf("ctrl: done, wakes=%lu (expected 1)\r\n", (unsigned long)exWakeCount);
   vTaskSuspend(NULL);
 }
@@ -160,6 +171,13 @@ int main(void)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
+  xTraceStringRegister("ex1", &exChannel);
+  xTraceStringRegister("waiter handle=0x%X", &exFmtHandle);
+  xTraceStringRegister("waiter wake: count=%u value=%u", &exFmtWake);
+  xTraceStringRegister("state before vTaskResume=%u", &exFmtBefore);
+  xTraceStringRegister("state after vTaskResume=%u", &exFmtAfter);
+  xTraceStringRegister("done: count=%u value=%u", &exFmtDone);
+
   /* waiter has the higher priority so it runs, and blocks, first */
   xTaskCreate(exWaiterTask,     "exWaiter", 256, NULL, 3, &exWaiter);
   xTaskCreate(exControllerTask, "exCtrl",   256, NULL, 2, NULL);
@@ -171,39 +189,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    char b[80];
-    int  n;
 
-    /* ---------- A) DMA printf: 3 expensive prints, async ----------
-     * printf() formats + kicks off DMA, then returns. The UART transfer
-     * happens in the background, so this measures CPU (formatting) cost only.
-     * All 3 sentences (~120 bytes) fit in the 200-byte ring buffer.        */
-    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }   /* start idle */
-    uint32_t a0 = DWT->CYCCNT;
-    printf("Euler's number e is roughly %.5f\r\n", 2.7182818);
-    printf("Avogadro's constant is %.3e per mol\r\n", 6.022e23);
-    printf("The square root of two is about %.6f\r\n", 1.4142136);
-    uint32_t dma_cyc = DWT->CYCCNT - a0;
-
-    /* let the DMA fully drain before touching the UART with blocking calls */
-    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }
-    HAL_Delay(10);
-
-    /* ---------- B) blocking printf: same 3 prints, sync ----------
-     * snprintf formats, then HAL_UART_Transmit BLOCKS until every byte is
-     * on the wire. So this measures formatting + the ~87 us/byte UART wait. */
-    uint32_t b0 = DWT->CYCCNT;
-    n = snprintf(b, sizeof b, "Euler's number e is roughly %.5f\r\n", 2.7182818);  HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    n = snprintf(b, sizeof b, "Avogadro's constant is %.3e per mol\r\n", 6.022e23); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    n = snprintf(b, sizeof b, "The square root of two is about %.6f\r\n", 1.4142136); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    uint32_t block_cyc = DWT->CYCCNT - b0;
-
-    /* ---------- compare (short lines so they fit the ring buffer) ---------- */
-    HAL_Delay(20);
-    printf("DMA:   %lu cyc\r\n", (unsigned long)dma_cyc);      HAL_Delay(20);
-    printf("BLOCK: %lu cyc\r\n", (unsigned long)block_cyc);    HAL_Delay(20);
-    printf("ratio: %lux\r\n", (unsigned long)(block_cyc / (dma_cyc ? dma_cyc : 1)));
-    HAL_Delay(1000);
   }
 
 

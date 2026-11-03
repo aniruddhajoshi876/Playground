@@ -1,3 +1,0 @@
-../Core/Src/ring_buffer.c:19:6:rb_create	1
-../Core/Src/ring_buffer.c:28:6:rb_push	2
-../Core/Src/ring_buffer.c:42:9:rb_pop	2

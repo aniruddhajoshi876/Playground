@@ -1,3 +1,0 @@
-../Middlewares/Third_Party/TraceRecorder/trcStateMachine.c:19:13:xTraceStateMachineCreate	2
-../Middlewares/Third_Party/TraceRecorder/trcStateMachine.c:41:13:xTraceStateMachineStateCreate	2
-../Middlewares/Third_Party/TraceRecorder/trcStateMachine.c:65:13:xTraceStateMachineSetState	1

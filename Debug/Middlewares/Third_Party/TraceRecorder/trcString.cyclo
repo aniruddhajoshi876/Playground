@@ -1,2 +1,0 @@
-../Middlewares/Third_Party/TraceRecorder/trcString.c:16:13:xTraceStringRegister	4
-../Middlewares/Third_Party/TraceRecorder/trcString.c:48:21:xTraceRegisterString	1
