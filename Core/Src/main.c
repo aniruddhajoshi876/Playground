@@ -58,17 +58,19 @@
   extern ring_buffer rb;
   extern uint8_t buf[200];
 
-  /* Exercise 1: watch these in the debugger */
-  static TaskHandle_t exWaiter;
-  static volatile uint32_t exWakeCount;      /* times ulTaskNotifyTake() returned */
-  static volatile uint32_t exLastValue;      /* value it returned last time */
-  static volatile eTaskState exStateBefore;  /* waiter state before vTaskResume() */
-  static volatile eTaskState exStateAfter;   /* waiter state after vTaskResume() */
+  /* Exercise 2: watch these in the debugger */
+  static TaskHandle_t exReceiver;
+  static QueueHandle_t exQueue;
+  static volatile eTaskState exStateBefore;  /* receiver state before the send */
+  static volatile eTaskState exStateDuring;  /* receiver state after the send, scheduler still suspended */
+  static volatile eTaskState exStateAfter;   /* receiver state after xTaskResumeAll() */
+  static volatile BaseType_t exRecvResult;   /* return value of xQueueReceive() */
+  static volatile uint32_t exRecvValue;      /* value the receiver got */
 
-  /* Exercise 1 user events (Tracealyzer channel "ex1").
+  /* Exercise 2 user events (Tracealyzer channel "ex2").
    * eTaskState values: 0 Running, 1 Ready, 2 Blocked, 3 Suspended, 4 Deleted */
   static TraceStringHandle_t exChannel;
-  static TraceStringHandle_t exFmtHandle, exFmtWake, exFmtBefore, exFmtAfter, exFmtDone;
+  static TraceStringHandle_t exFmtHandle, exFmtBefore, exFmtDuring, exFmtAfter, exFmtRecv;
 
 /* USER CODE END PV */
 
@@ -82,47 +84,54 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 /*
- * Exercise 1: the waiter blocks forever on its task notification. The
- * controller calls vTaskResume() on it, then later sends a real notification.
+ * Exercise 2: the receiver blocks on a queue with a long timeout. The
+ * controller suspends the scheduler, sends one item to the queue, and asks
+ * eTaskGetState() about the receiver before resuming the scheduler.
  *
- * Expected: the waiter wakes up exactly once, when the real notification
- * arrives, with value 1. Compare that with what you observe.
+ * Expected (see the eTaskState comments in task.h): once the item has been
+ * sent, the receiver is no longer waiting for anything, so it should be
+ * reported as Ready (1), even though it can't run until the scheduler resumes.
+ * Compare that with exStateDuring.
  */
-static void exWaiterTask(void *arg)
+static void exReceiverTask(void *arg)
 {
   (void)arg;
-  for (;;)
-  {
-    exLastValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    exWakeCount++;
-    xTracePrintF2(exChannel, exFmtWake, exWakeCount, exLastValue);
-    printf("waiter: wake #%lu value=%lu\r\n",
-           (unsigned long)exWakeCount, (unsigned long)exLastValue);
-  }
+  uint32_t value = 0;
+
+  exRecvResult = xQueueReceive(exQueue, &value, pdMS_TO_TICKS(5000));
+  exRecvValue = value;
+  xTracePrintF2(exChannel, exFmtRecv, exRecvResult, exRecvValue);
+  printf("receiver: result=%ld value=%lu\r\n",
+         (long)exRecvResult, (unsigned long)exRecvValue);
+  vTaskSuspend(NULL);
 }
 
 static void exControllerTask(void *arg)
 {
   (void)arg;
+  uint32_t item = 42;
 
-  xTracePrintF1(exChannel, exFmtHandle, (TraceUnsignedBaseType_t)exWaiter);
+  xTracePrintF1(exChannel, exFmtHandle, (TraceUnsignedBaseType_t)exReceiver);
 
-  /* give the waiter time to block */
+  /* give the receiver time to block on the empty queue */
   vTaskDelay(pdMS_TO_TICKS(500));
-  exStateBefore = eTaskGetState(exWaiter);
+  exStateBefore = eTaskGetState(exReceiver);
   xTracePrintF1(exChannel, exFmtBefore, exStateBefore);
-  printf("ctrl: vTaskResume\r\n");
-  vTaskResume(exWaiter);
 
-  vTaskDelay(pdMS_TO_TICKS(500));
-  exStateAfter = eTaskGetState(exWaiter);
+  vTaskSuspendAll();
+  {
+    xQueueSend(exQueue, &item, 0);
+    exStateDuring = eTaskGetState(exReceiver);
+  }
+  xTaskResumeAll();
+  xTracePrintF1(exChannel, exFmtDuring, exStateDuring);
+
+  vTaskDelay(pdMS_TO_TICKS(100));
+  exStateAfter = eTaskGetState(exReceiver);
   xTracePrintF1(exChannel, exFmtAfter, exStateAfter);
-  printf("ctrl: xTaskNotifyGive\r\n");
-  xTaskNotifyGive(exWaiter);
 
-  vTaskDelay(pdMS_TO_TICKS(500));
-  xTracePrintF2(exChannel, exFmtDone, exWakeCount, exLastValue);
-  printf("ctrl: done, wakes=%lu (expected 1)\r\n", (unsigned long)exWakeCount);
+  printf("ctrl: before=%d during=%d (expected 1) after=%d\r\n",
+         (int)exStateBefore, (int)exStateDuring, (int)exStateAfter);
   vTaskSuspend(NULL);
 }
 
@@ -171,16 +180,18 @@ int main(void)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
-  xTraceStringRegister("ex1", &exChannel);
-  xTraceStringRegister("waiter handle=0x%X", &exFmtHandle);
-  xTraceStringRegister("waiter wake: count=%u value=%u", &exFmtWake);
-  xTraceStringRegister("state before vTaskResume=%u", &exFmtBefore);
-  xTraceStringRegister("state after vTaskResume=%u", &exFmtAfter);
-  xTraceStringRegister("done: count=%u value=%u", &exFmtDone);
+  xTraceStringRegister("ex2", &exChannel);
+  xTraceStringRegister("receiver handle=0x%X", &exFmtHandle);
+  xTraceStringRegister("state before send=%u", &exFmtBefore);
+  xTraceStringRegister("state after send, scheduler suspended=%u", &exFmtDuring);
+  xTraceStringRegister("state after resume=%u", &exFmtAfter);
+  xTraceStringRegister("receiver: result=%d value=%u", &exFmtRecv);
 
-  /* waiter has the higher priority so it runs, and blocks, first */
-  xTaskCreate(exWaiterTask,     "exWaiter", 256, NULL, 3, &exWaiter);
-  xTaskCreate(exControllerTask, "exCtrl",   256, NULL, 2, NULL);
+  exQueue = xQueueCreate(1, sizeof(uint32_t));
+
+  /* receiver has the higher priority so it runs, and blocks, first */
+  xTaskCreate(exReceiverTask,   "exRecv", 256, NULL, 3, &exReceiver);
+  xTaskCreate(exControllerTask, "exCtrl", 256, NULL, 2, NULL);
   vTaskStartScheduler();
 
   /* USER CODE END 2 */
