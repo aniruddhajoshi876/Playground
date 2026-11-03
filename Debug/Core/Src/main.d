@@ -30,7 +30,56 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
  ../Core/Inc/dma.h ../Core/Inc/main.h ../Core/Inc/tim.h \
  ../Core/Inc/usart.h ../Core/Inc/gpio.h ../Core/Inc/BoardManagerWrapper.h \
- ../Core/Inc/ring_buffer.h
+ ../Core/Inc/ring_buffer.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
+ ../Core/Inc/FreeRTOSConfig.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcRecorder.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcDefines.h \
+ ../Middlewares/Third_Party/TraceRecorder/config/trcConfig.h \
+ ../Middlewares/Third_Party/TraceRecorder/config/trcKernelPortConfig.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcTypes.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcHardwarePort.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcKernelPort.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcHeap.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcString.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcStaticBuffer.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcError.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcEvent.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcEventBuffer.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcMultiCoreEventBuffer.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcTimestamp.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcEntryTable.h \
+ ../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/include/trcStreamPort.h \
+ ../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/config/trcStreamPortConfig.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcISR.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcTask.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcObject.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcPrint.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcExtension.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcUtility.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcStackMonitor.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcInternalEventBuffer.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcDiagnostics.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcAssert.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcRunnable.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcDependency.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcProcess.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcThread.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcInterval.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcStateMachine.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcCounter.h \
+ ../Middlewares/Third_Party/TraceRecorder/include/trcTaskMonitor.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 ../Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
@@ -68,3 +117,52 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/gpio.h:
 ../Core/Inc/BoardManagerWrapper.h:
 ../Core/Inc/ring_buffer.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
+../Core/Inc/FreeRTOSConfig.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcRecorder.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcDefines.h:
+../Middlewares/Third_Party/TraceRecorder/config/trcConfig.h:
+../Middlewares/Third_Party/TraceRecorder/config/trcKernelPortConfig.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcTypes.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcHardwarePort.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcKernelPort.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcHeap.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcString.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcStaticBuffer.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcError.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcEvent.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcEventBuffer.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcMultiCoreEventBuffer.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcTimestamp.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcEntryTable.h:
+../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/include/trcStreamPort.h:
+../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/config/trcStreamPortConfig.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcISR.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcTask.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcObject.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcPrint.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcExtension.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcUtility.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcStackMonitor.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcInternalEventBuffer.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcDiagnostics.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcAssert.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcRunnable.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcDependency.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcProcess.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcThread.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcInterval.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcStateMachine.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcCounter.h:
+../Middlewares/Third_Party/TraceRecorder/include/trcTaskMonitor.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h:
+../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:

@@ -30,6 +30,11 @@
 #include <string.h>
 #include <math.h>
 #include "ring_buffer.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+#include "trcRecorder.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +44,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 
 /* USER CODE END PD */
 
@@ -54,6 +58,13 @@
   extern ring_buffer rb;
   extern uint8_t buf[200];
 
+  /* Exercise 1: watch these in the debugger */
+  static TaskHandle_t exWaiter;
+  static volatile uint32_t exWakeCount;      /* times ulTaskNotifyTake() returned */
+  static volatile uint32_t exLastValue;      /* value it returned last time */
+  static volatile eTaskState exStateBefore;  /* waiter state before vTaskResume() */
+  static volatile eTaskState exStateAfter;   /* waiter state after vTaskResume() */
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,7 +76,44 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/*
+ * Exercise 1: the waiter blocks forever on its task notification. The
+ * controller calls vTaskResume() on it, then later sends a real notification.
+ *
+ * Expected: the waiter wakes up exactly once, when the real notification
+ * arrives, with value 1. Compare that with what you observe.
+ */
+static void exWaiterTask(void *arg)
+{
+  (void)arg;
+  for (;;)
+  {
+    exLastValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    exWakeCount++;
+    printf("waiter: wake #%lu value=%lu\r\n",
+           (unsigned long)exWakeCount, (unsigned long)exLastValue);
+  }
+}
 
+static void exControllerTask(void *arg)
+{
+  (void)arg;
+
+  /* give the waiter time to block */
+  vTaskDelay(pdMS_TO_TICKS(500));
+  exStateBefore = eTaskGetState(exWaiter);
+  printf("ctrl: vTaskResume\r\n");
+  vTaskResume(exWaiter);
+
+  vTaskDelay(pdMS_TO_TICKS(500));
+  exStateAfter = eTaskGetState(exWaiter);
+  printf("ctrl: xTaskNotifyGive\r\n");
+  xTaskNotifyGive(exWaiter);
+
+  vTaskDelay(pdMS_TO_TICKS(500));
+  printf("ctrl: done, wakes=%lu (expected 1)\r\n", (unsigned long)exWakeCount);
+  vTaskSuspend(NULL);
+}
 
 
 /* USER CODE END 0 */
@@ -104,12 +152,18 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  xTraceEnable(TRC_START);
 
   rb_create(&rb, buf, 200);
 
   /* enable the DWT cycle counter (16 cyc = 1 us at 16 MHz) */
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
+
+  /* waiter has the higher priority so it runs, and blocks, first */
+  xTaskCreate(exWaiterTask,     "exWaiter", 256, NULL, 3, &exWaiter);
+  xTaskCreate(exControllerTask, "exCtrl",   256, NULL, 2, NULL);
+  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 

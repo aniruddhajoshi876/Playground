@@ -1,0 +1,4 @@
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:26:13:xTraceExtensionInitialize	1
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:41:13:xTraceExtensionCreate	2
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:81:13:xTraceExtensionGetBaseEventId	1
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:100:13:xTraceExtensionGetConfigName	1

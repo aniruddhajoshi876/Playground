@@ -1,0 +1,11 @@
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:139:13:xTraceKernelPortDelay	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:146:15:xTraceKernelPortIsSchedulerSuspended	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:169:13:xTraceKernelPortInitialize	2
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:186:13:xTraceKernelPortEnable	4
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:233:8:TzCtrl	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:245:13:xTraceKernelPortSetTaskMonitorData	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:269:13:xTraceKernelPortGetTaskMonitorData	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:302:6:vTraceSetQueueName	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:307:6:vTraceSetSemaphoreName	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:312:6:vTraceSetMutexName	1
+../Middlewares/Third_Party/TraceRecorder/trcKernelPort.c:342:19:xTraceKernelPortGetSystemHeapHandle	1

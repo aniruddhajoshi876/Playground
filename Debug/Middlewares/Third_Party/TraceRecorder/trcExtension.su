@@ -1,0 +1,4 @@
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:26:13:xTraceExtensionInitialize	16	static
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:41:13:xTraceExtensionCreate	48	static
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:81:13:xTraceExtensionGetBaseEventId	24	static
+../Middlewares/Third_Party/TraceRecorder/trcExtension.c:100:13:xTraceExtensionGetConfigName	16	static
