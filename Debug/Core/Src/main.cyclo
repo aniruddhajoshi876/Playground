@@ -1,0 +1,6 @@
+../Core/Src/main.c:96:13:exReceiverTask	1
+../Core/Src/main.c:109:13:exControllerTask	1
+../Core/Src/main.c:145:5:main	1
+../Core/Src/main.c:220:6:SystemClock_Config	3
+../Core/Src/main.c:271:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:289:6:Error_Handler	1

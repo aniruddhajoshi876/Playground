@@ -1,0 +1,13 @@
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:136:13:xTraceInitialize	16	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:281:13:xTraceHeaderInitialize	24	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:353:13:xTraceEnable	32	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:415:13:xTraceDisable	8	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:438:13:xTraceGetEventBuffer	16	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:452:13:xTraceTzCtrl	24	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:500:32:prvIs64bit	4	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:506:13:prvSetRecorderEnabled	32	static,ignoring_inline_asm
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:551:13:prvSetRecorderDisabled	24	static,ignoring_inline_asm
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:614:13:prvTraceStoreStartEvent	24	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:630:16:prvIsValidCommand	24	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:658:13:prvProcessCommand	16	static
+../Middlewares/Third_Party/TraceRecorder/trcStreamingRecorder.c:678:20:prvVerifySizeAlignment	16	static

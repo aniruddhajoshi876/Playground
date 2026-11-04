@@ -1,0 +1,6 @@
+../Core/Src/main.c:96:13:exReceiverTask	32	static
+../Core/Src/main.c:109:13:exControllerTask	24	static
+../Core/Src/main.c:145:5:main	16	static
+../Core/Src/main.c:220:6:SystemClock_Config	88	static
+../Core/Src/main.c:271:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main.c:289:6:Error_Handler	4	static,ignoring_inline_asm

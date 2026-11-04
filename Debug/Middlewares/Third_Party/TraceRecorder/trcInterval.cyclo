@@ -1,0 +1,4 @@
+../Middlewares/Third_Party/TraceRecorder/trcInterval.c:16:13:xTraceIntervalChannelSetCreate	2
+../Middlewares/Third_Party/TraceRecorder/trcInterval.c:38:13:xTraceIntervalChannelCreate	2
+../Middlewares/Third_Party/TraceRecorder/trcInterval.c:62:13:xTraceIntervalStart	2
+../Middlewares/Third_Party/TraceRecorder/trcInterval.c:78:13:xTraceIntervalStop	1

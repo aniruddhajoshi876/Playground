@@ -1,0 +1,8 @@
+../Core/Src/BoardManagerWrapper.cpp:14:7:void* bm_create()	16	static
+../Core/Src/BoardManagerWrapper.cpp:19:6:void bm_execute(void*)	16	static
+../Core/Src/BoardManagerWrapper.cpp:23:6:void bm_pwm(void*, uint32_t*)	16	static
+../Core/Src/BoardManagerWrapper.cpp:27:6:void bm_state_manager(void*)	16	static
+../Core/Src/BoardManagerWrapper.cpp:31:6:void bm_init(void*)	16	static
+../Core/Src/BoardManagerWrapper.cpp:35:6:void bm_timer_manager(void (*)(void*), uint32_t)	16	static
+../Core/Src/BoardManagerWrapper.cpp:40:6:void bm_adc(void*)	16	static
+../Core/Src/BoardManagerWrapper.cpp:45:6:void low_priority_task()	8	static
