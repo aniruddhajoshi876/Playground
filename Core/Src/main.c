@@ -58,19 +58,16 @@
   extern ring_buffer rb;
   extern uint8_t buf[200];
 
-  /* Exercise 2: watch these in the debugger */
-  static TaskHandle_t exReceiver;
-  static QueueHandle_t exQueue;
-  static volatile eTaskState exStateBefore;  /* receiver state before the send */
-  static volatile eTaskState exStateDuring;  /* receiver state after the send, scheduler still suspended */
-  static volatile eTaskState exStateAfter;   /* receiver state after xTaskResumeAll() */
-  static volatile BaseType_t exRecvResult;   /* return value of xQueueReceive() */
-  static volatile uint32_t exRecvValue;      /* value the receiver got */
+  /* Exercise 3: watch these in the debugger */
+  static TaskHandle_t exSleeper;
+  static TaskHandle_t exSpinner;
+  static volatile uint32_t exSleeperRuns;    /* times the sleeper got to run its loop */
+  static volatile uint32_t exSleeperTick;    /* tick count the last time it ran */
+  static volatile uint32_t exSpinnerLoops;   /* spinner busy-loop counter */
 
-  /* Exercise 2 user events (Tracealyzer channel "ex2").
-   * eTaskState values: 0 Running, 1 Ready, 2 Blocked, 3 Suspended, 4 Deleted */
+  /* Exercise 3 user events (Tracealyzer channel "ex3") */
   static TraceStringHandle_t exChannel;
-  static TraceStringHandle_t exFmtHandle, exFmtBefore, exFmtDuring, exFmtAfter, exFmtRecv;
+  static TraceStringHandle_t exFmtHandles, exFmtRun;
 
 /* USER CODE END PV */
 
@@ -84,55 +81,43 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 /*
- * Exercise 2: the receiver blocks on a queue with a long timeout. The
- * controller suspends the scheduler, sends one item to the queue, and asks
- * eTaskGetState() about the receiver before resuming the scheduler.
+ * Exercise 3: two tasks at the same priority, with preemption on and time
+ * slicing off (configUSE_TIME_SLICING 0 in FreeRTOSConfig.h).
  *
- * Expected (see the eTaskState comments in task.h): once the item has been
- * sent, the receiver is no longer waiting for anything, so it should be
- * reported as Ready (1), even though it can't run until the scheduler resumes.
- * Compare that with exStateDuring.
+ * The sleeper creates the spinner, then loops on vTaskDelay(). The spinner
+ * never blocks.
+ *
+ * Expected: with time slicing off, an equal-priority task never takes the CPU
+ * away from the running one, so once the spinner is running the sleeper
+ * should never run again. exSleeperRuns should stay at 1.
+ * Compare that with what you observe.
  */
-static void exReceiverTask(void *arg)
+static void exSpinnerTask(void *arg)
 {
   (void)arg;
-  uint32_t value = 0;
-
-  exRecvResult = xQueueReceive(exQueue, &value, pdMS_TO_TICKS(5000));
-  exRecvValue = value;
-  xTracePrintF2(exChannel, exFmtRecv, exRecvResult, exRecvValue);
-  printf("receiver: result=%ld value=%lu\r\n",
-         (long)exRecvResult, (unsigned long)exRecvValue);
-  vTaskSuspend(NULL);
+  for (;;)
+  {
+    exSpinnerLoops++;
+  }
 }
 
-static void exControllerTask(void *arg)
+static void exSleeperTask(void *arg)
 {
   (void)arg;
-  uint32_t item = 42;
 
-  xTracePrintF1(exChannel, exFmtHandle, (TraceUnsignedBaseType_t)exReceiver);
+  xTaskCreate(exSpinnerTask, "exSpin", 256, NULL, 2, &exSpinner);
+  xTracePrintF2(exChannel, exFmtHandles,
+                (TraceUnsignedBaseType_t)exSleeper, (TraceUnsignedBaseType_t)exSpinner);
 
-  /* give the receiver time to block on the empty queue */
-  vTaskDelay(pdMS_TO_TICKS(500));
-  exStateBefore = eTaskGetState(exReceiver);
-  xTracePrintF1(exChannel, exFmtBefore, exStateBefore);
-
-  vTaskSuspendAll();
+  for (;;)
   {
-    xQueueSend(exQueue, &item, 0);
-    exStateDuring = eTaskGetState(exReceiver);
+    exSleeperRuns++;
+    exSleeperTick = xTaskGetTickCount();
+    xTracePrintF2(exChannel, exFmtRun, exSleeperRuns, exSleeperTick);
+    printf("sleeper: run #%lu at tick %lu\r\n",
+           (unsigned long)exSleeperRuns, (unsigned long)exSleeperTick);
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
-  xTaskResumeAll();
-  xTracePrintF1(exChannel, exFmtDuring, exStateDuring);
-
-  vTaskDelay(pdMS_TO_TICKS(100));
-  exStateAfter = eTaskGetState(exReceiver);
-  xTracePrintF1(exChannel, exFmtAfter, exStateAfter);
-
-  printf("ctrl: before=%d during=%d (expected 1) after=%d\r\n",
-         (int)exStateBefore, (int)exStateDuring, (int)exStateAfter);
-  vTaskSuspend(NULL);
 }
 
 
@@ -180,18 +165,12 @@ int main(void)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
-  xTraceStringRegister("ex2", &exChannel);
-  xTraceStringRegister("receiver handle=0x%X", &exFmtHandle);
-  xTraceStringRegister("state before send=%u", &exFmtBefore);
-  xTraceStringRegister("state after send, scheduler suspended=%u", &exFmtDuring);
-  xTraceStringRegister("state after resume=%u", &exFmtAfter);
-  xTraceStringRegister("receiver: result=%d value=%u", &exFmtRecv);
+  xTraceStringRegister("ex3", &exChannel);
+  xTraceStringRegister("sleeper handle=0x%X spinner handle=0x%X", &exFmtHandles);
+  xTraceStringRegister("sleeper run #%u at tick %u", &exFmtRun);
 
-  exQueue = xQueueCreate(1, sizeof(uint32_t));
-
-  /* receiver has the higher priority so it runs, and blocks, first */
-  xTaskCreate(exReceiverTask,   "exRecv", 256, NULL, 3, &exReceiver);
-  xTaskCreate(exControllerTask, "exCtrl", 256, NULL, 2, NULL);
+  /* only the sleeper is created here; it creates the spinner itself */
+  xTaskCreate(exSleeperTask, "exSleep", 256, NULL, 2, &exSleeper);
   vTaskStartScheduler();
 
   /* USER CODE END 2 */
