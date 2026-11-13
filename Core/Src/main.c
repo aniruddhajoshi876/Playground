@@ -58,16 +58,7 @@
   extern ring_buffer rb;
   extern uint8_t buf[200];
 
-  /* Exercise 3: watch these in the debugger */
-  static TaskHandle_t exSleeper;
-  static TaskHandle_t exSpinner;
-  static volatile uint32_t exSleeperRuns;    /* times the sleeper got to run its loop */
-  static volatile uint32_t exSleeperTick;    /* tick count the last time it ran */
-  static volatile uint32_t exSpinnerLoops;   /* spinner busy-loop counter */
-
-  /* Exercise 3 user events (Tracealyzer channel "ex3") */
-  static TraceStringHandle_t exChannel;
-  static TraceStringHandle_t exFmtHandles, exFmtRun;
+  static SemaphoreHandle_t busLock;
 
 /* USER CODE END PV */
 
@@ -80,43 +71,73 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/*
- * Exercise 3: two tasks at the same priority, with preemption on and time
- * slicing off (configUSE_TIME_SLICING 0 in FreeRTOSConfig.h).
- *
- * The sleeper creates the spinner, then loops on vTaskDelay(). The spinner
- * never blocks.
- *
- * Expected: with time slicing off, an equal-priority task never takes the CPU
- * away from the running one, so once the spinner is running the sleeper
- * should never run again. exSleeperRuns should stay at 1.
- * Compare that with what you observe.
- */
-static void exSpinnerTask(void *arg)
+/* Wall-clock busy wait using the DWT cycle counter (enabled in main). */
+static void busyMs(uint32_t ms)
+{
+  uint32_t cycles = ms * (SystemCoreClock / 1000U);
+  uint32_t start  = DWT->CYCCNT;
+  while ((DWT->CYCCNT - start) < cycles) { }
+}
+
+/* Reads a sensor over a shared bus. */
+static void sensorTask(void *arg)
 {
   (void)arg;
   for (;;)
   {
-    exSpinnerLoops++;
+    xSemaphoreTake(busLock, portMAX_DELAY);
+    busyMs(15);                       /* bus transaction */
+    xSemaphoreGive(busLock);
+    vTaskDelay(pdMS_TO_TICKS(35));
   }
 }
 
-static void exSleeperTask(void *arg)
+/* Builds and sends a telemetry frame once a second. */
+static void telemetryTask(void *arg)
 {
   (void)arg;
+  uint32_t frame = 0;
+  for (;;)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    busyMs(300);                      /* format + checksum the frame */
+    printf("telemetry: frame %lu sent\r\n", (unsigned long)++frame);
+  }
+}
 
-  xTaskCreate(exSpinnerTask, "exSpin", 256, NULL, 2, &exSpinner);
-  xTracePrintF2(exChannel, exFmtHandles,
-                (TraceUnsignedBaseType_t)exSleeper, (TraceUnsignedBaseType_t)exSpinner);
+/* 20 Hz control loop. Each cycle needs the bus, then must finish within 25 ms. */
+static void controlTask(void *arg)
+{
+  (void)arg;
+  TickType_t next = xTaskGetTickCount();
+  uint32_t cycle = 0, missed = 0;
 
   for (;;)
   {
-    exSleeperRuns++;
-    exSleeperTick = xTaskGetTickCount();
-    xTracePrintF2(exChannel, exFmtRun, exSleeperRuns, exSleeperTick);
-    printf("sleeper: run #%lu at tick %lu\r\n",
-           (unsigned long)exSleeperRuns, (unsigned long)exSleeperTick);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelayUntil(&next, pdMS_TO_TICKS(50));
+    TickType_t released = xTaskGetTickCount();
+    cycle++;
+
+    if (xSemaphoreTake(busLock, pdMS_TO_TICKS(30)) == pdTRUE)
+    {
+      busyMs(2);                      /* read the bus, run the controller */
+      xSemaphoreGive(busLock);
+    }
+    else
+    {
+      missed++;
+      printf("control: cycle %lu could not get the bus (%lu missed so far)\r\n",
+             (unsigned long)cycle, (unsigned long)missed);
+      continue;
+    }
+
+    TickType_t took = xTaskGetTickCount() - released;
+    if (took > pdMS_TO_TICKS(25))
+    {
+      missed++;
+      printf("control: cycle %lu took %lu ms (%lu missed so far)\r\n",
+             (unsigned long)cycle, (unsigned long)took, (unsigned long)missed);
+    }
   }
 }
 
@@ -165,12 +186,12 @@ int main(void)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
-  xTraceStringRegister("ex3", &exChannel);
-  xTraceStringRegister("sleeper handle=0x%X spinner handle=0x%X", &exFmtHandles);
-  xTraceStringRegister("sleeper run #%u at tick %u", &exFmtRun);
+  busLock = xSemaphoreCreateBinary();
+  xSemaphoreGive(busLock);
 
-  /* only the sleeper is created here; it creates the spinner itself */
-  xTaskCreate(exSleeperTask, "exSleep", 256, NULL, 2, &exSleeper);
+  xTaskCreate(sensorTask,    "Sensor",    256, NULL, 1, NULL);
+  xTaskCreate(telemetryTask, "Telemetry", 256, NULL, 2, NULL);
+  xTaskCreate(controlTask,   "Control",   256, NULL, 3, NULL);
   vTaskStartScheduler();
 
   /* USER CODE END 2 */
