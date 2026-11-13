@@ -27,3 +27,4 @@ Nothing crashes and nothing asserts.
 ## Notes
 - RTT output comes through `printf` (`PRINTF_TO_RTT` in `Core/Src/syscalls.c`).
 - The project also contains Percepio TraceRecorder, which uses the same FreeRTOS trace hooks SystemView needs. Working out how the two coexist is part of the task.
+- J-Scope: `ctlWaitMs`, `ctlCycleMs` and `ctlMissed` in `main.c` are plain globals you can plot. Point J-Scope at `Debug/Led.elf`, pick the device `STM32G491VE`, and add them. Use the J-Link only, since ST-LINK can't sample memory like this. Plot them next to the RTT log and the SystemView timeline and see which tells the story best.

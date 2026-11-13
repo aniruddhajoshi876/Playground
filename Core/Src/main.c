@@ -60,6 +60,11 @@
 
   static SemaphoreHandle_t busLock;
 
+  /* Globals for J-Scope (read straight from RAM via the .elf symbols) */
+  volatile uint32_t ctlWaitMs;     /* ms Control spent waiting for the bus, last cycle */
+  volatile uint32_t ctlCycleMs;    /* ms from release to done, last cycle */
+  volatile uint32_t ctlMissed;     /* total missed cycles */
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,21 +125,26 @@ static void controlTask(void *arg)
 
     if (xSemaphoreTake(busLock, pdMS_TO_TICKS(30)) == pdTRUE)
     {
+      ctlWaitMs = xTaskGetTickCount() - released;
       busyMs(2);                      /* read the bus, run the controller */
       xSemaphoreGive(busLock);
     }
     else
     {
+      ctlWaitMs = xTaskGetTickCount() - released;
       missed++;
+      ctlMissed = missed;
       printf("control: cycle %lu could not get the bus (%lu missed so far)\r\n",
              (unsigned long)cycle, (unsigned long)missed);
       continue;
     }
 
     TickType_t took = xTaskGetTickCount() - released;
+    ctlCycleMs = took;
     if (took > pdMS_TO_TICKS(25))
     {
       missed++;
+      ctlMissed = missed;
       printf("control: cycle %lu took %lu ms (%lu missed so far)\r\n",
              (unsigned long)cycle, (unsigned long)took, (unsigned long)missed);
     }
