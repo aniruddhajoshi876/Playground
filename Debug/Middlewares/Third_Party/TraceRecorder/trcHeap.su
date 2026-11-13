@@ -1,3 +1,0 @@
-../Middlewares/Third_Party/TraceRecorder/trcHeap.c:16:13:xTraceHeapCreate	56	static
-../Middlewares/Third_Party/TraceRecorder/trcHeap.c:27:13:xTraceHeapAlloc	32	static
-../Middlewares/Third_Party/TraceRecorder/trcHeap.c:64:13:xTraceHeapFree	32	static

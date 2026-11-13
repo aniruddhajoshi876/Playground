@@ -1,2 +1,0 @@
-../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/trcStreamPort.c:23:13:xTraceStreamPortInitialize	6
-../Middlewares/Third_Party/TraceRecorder/streamports/RingBuffer/trcStreamPort.c:98:13:xTraceStreamPortOnTraceBegin	1
