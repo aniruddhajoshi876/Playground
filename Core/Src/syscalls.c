@@ -32,6 +32,7 @@
 #include "usart.h"
 #include "stm32g4xx_hal.h"
 #include "ring_buffer.h"
+#include "SEGGER_RTT.h"
 
 /* Variables */
 
@@ -172,8 +173,14 @@ int _execve(char *name, char **argv, char **env)
 ring_buffer rb;
 uint8_t buf[200];
 
+#define PRINTF_TO_RTT 1   // 1 = printf -> SEGGER RTT (RTT Viewer), 0 = printf -> UART ring buffer
+
 int _write(int file, char *ptr, int len)
 {
+#if PRINTF_TO_RTT
+	(void)file;
+	return (int)SEGGER_RTT_Write(0, ptr, (unsigned)len);
+#endif
 	for (int i =0; i < len; i++){
 		if (!rb_push(&rb, ptr[i])){
 			return i; //buffer full

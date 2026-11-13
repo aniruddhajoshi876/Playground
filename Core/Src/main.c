@@ -30,6 +30,11 @@
 #include <string.h>
 #include <math.h>
 #include "ring_buffer.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+#include "trcRecorder.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +44,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 
 /* USER CODE END PD */
 
@@ -54,6 +58,17 @@
   extern ring_buffer rb;
   extern uint8_t buf[200];
 
+  /* Exercise 3: watch these in the debugger */
+  static TaskHandle_t exSleeper;
+  static TaskHandle_t exSpinner;
+  static volatile uint32_t exSleeperRuns;    /* times the sleeper got to run its loop */
+  static volatile uint32_t exSleeperTick;    /* tick count the last time it ran */
+  static volatile uint32_t exSpinnerLoops;   /* spinner busy-loop counter */
+
+  /* Exercise 3 user events (Tracealyzer channel "ex3") */
+  static TraceStringHandle_t exChannel;
+  static TraceStringHandle_t exFmtHandles, exFmtRun;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,7 +80,45 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/*
+ * Exercise 3: two tasks at the same priority, with preemption on and time
+ * slicing off (configUSE_TIME_SLICING 0 in FreeRTOSConfig.h).
+ *
+ * The sleeper creates the spinner, then loops on vTaskDelay(). The spinner
+ * never blocks.
+ *
+ * Expected: with time slicing off, an equal-priority task never takes the CPU
+ * away from the running one, so once the spinner is running the sleeper
+ * should never run again. exSleeperRuns should stay at 1.
+ * Compare that with what you observe.
+ */
+static void exSpinnerTask(void *arg)
+{
+  (void)arg;
+  for (;;)
+  {
+    exSpinnerLoops++;
+  }
+}
 
+static void exSleeperTask(void *arg)
+{
+  (void)arg;
+
+  xTaskCreate(exSpinnerTask, "exSpin", 256, NULL, 2, &exSpinner);
+  xTracePrintF2(exChannel, exFmtHandles,
+                (TraceUnsignedBaseType_t)exSleeper, (TraceUnsignedBaseType_t)exSpinner);
+
+  for (;;)
+  {
+    exSleeperRuns++;
+    exSleeperTick = xTaskGetTickCount();
+    xTracePrintF2(exChannel, exFmtRun, exSleeperRuns, exSleeperTick);
+    printf("sleeper: run #%lu at tick %lu\r\n",
+           (unsigned long)exSleeperRuns, (unsigned long)exSleeperTick);
+    vTaskDelay(pdMS_TO_TICKS(500));
+  }
+}
 
 
 /* USER CODE END 0 */
@@ -104,6 +157,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  xTraceEnable(TRC_START);
 
   rb_create(&rb, buf, 200);
 
@@ -111,45 +165,21 @@ int main(void)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CTRL        |= DWT_CTRL_CYCCNTENA_Msk;
 
+  xTraceStringRegister("ex3", &exChannel);
+  xTraceStringRegister("sleeper handle=0x%X spinner handle=0x%X", &exFmtHandles);
+  xTraceStringRegister("sleeper run #%u at tick %u", &exFmtRun);
+
+  /* only the sleeper is created here; it creates the spinner itself */
+  xTaskCreate(exSleeperTask, "exSleep", 256, NULL, 2, &exSleeper);
+  vTaskStartScheduler();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    char b[80];
-    int  n;
 
-    /* ---------- A) DMA printf: 3 expensive prints, async ----------
-     * printf() formats + kicks off DMA, then returns. The UART transfer
-     * happens in the background, so this measures CPU (formatting) cost only.
-     * All 3 sentences (~120 bytes) fit in the 200-byte ring buffer.        */
-    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }   /* start idle */
-    uint32_t a0 = DWT->CYCCNT;
-    printf("Euler's number e is roughly %.5f\r\n", 2.7182818);
-    printf("Avogadro's constant is %.3e per mol\r\n", 6.022e23);
-    printf("The square root of two is about %.6f\r\n", 1.4142136);
-    uint32_t dma_cyc = DWT->CYCCNT - a0;
-
-    /* let the DMA fully drain before touching the UART with blocking calls */
-    while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX) { }
-    HAL_Delay(10);
-
-    /* ---------- B) blocking printf: same 3 prints, sync ----------
-     * snprintf formats, then HAL_UART_Transmit BLOCKS until every byte is
-     * on the wire. So this measures formatting + the ~87 us/byte UART wait. */
-    uint32_t b0 = DWT->CYCCNT;
-    n = snprintf(b, sizeof b, "Euler's number e is roughly %.5f\r\n", 2.7182818);  HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    n = snprintf(b, sizeof b, "Avogadro's constant is %.3e per mol\r\n", 6.022e23); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    n = snprintf(b, sizeof b, "The square root of two is about %.6f\r\n", 1.4142136); HAL_UART_Transmit(&huart1, (uint8_t*)b, n, HAL_MAX_DELAY);
-    uint32_t block_cyc = DWT->CYCCNT - b0;
-
-    /* ---------- compare (short lines so they fit the ring buffer) ---------- */
-    HAL_Delay(20);
-    printf("DMA:   %lu cyc\r\n", (unsigned long)dma_cyc);      HAL_Delay(20);
-    printf("BLOCK: %lu cyc\r\n", (unsigned long)block_cyc);    HAL_Delay(20);
-    printf("ratio: %lux\r\n", (unsigned long)(block_cyc / (dma_cyc ? dma_cyc : 1)));
-    HAL_Delay(1000);
   }
 
 
